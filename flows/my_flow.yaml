@@ -1,0 +1,24 @@
+name: uppercase_example
+mode: job
+
+queues:
+  q1:
+    type: mpsc
+    capacity: 128
+  q2:
+    type: mpsc
+    capacity: 128
+
+stages:
+  source:
+    type: noop_source
+    outputs: [q1]
+
+  upper:
+    type: uppercase_transform
+    inputs: [q1]
+    outputs: [q2]
+
+  sink:
+    type: stdout_sink
+    inputs: [q2]
