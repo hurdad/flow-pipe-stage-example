@@ -102,16 +102,6 @@ The runtime will:
   /flows
   ```
 
-The runtime will:
-- load stage plugins from:
-  ```
-  /opt/flow-pipe/plugins
-  ```
-- read flow definitions from:
-  ```
-  /flows
-  ```
-
 This keeps images immutable while allowing flows to be updated independently.
 
 ---
