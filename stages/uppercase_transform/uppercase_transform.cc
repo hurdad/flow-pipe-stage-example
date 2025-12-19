@@ -1,34 +1,47 @@
 #include <algorithm>
-#include <cctype>
-#include <string>
 
-#include "flow_pipe/stage.h"
-#include "flow_pipe/record.h"
+#include "flowpipe/stage.h"
 
-using namespace flow_pipe;
+using namespace flowpipe;
 
-class UppercaseTransform final : public Stage {
+class UppercaseTransform final : public ITransformStage {
 public:
-  UppercaseTransform(const StageContext& ctx)
-      : Stage(ctx) {}
+  std::string name() const override {
+    return "uppercase_transform";
+  }
 
-  void process(Record&& record) override {
-    auto& value = record.value<std::string>();
+  void run(StageContext& ctx,
+          BoundedQueue<Payload>& in,
+          BoundedQueue<Payload>& out) override {
+    while (!ctx.stop.stop_requested()) {
+      auto item = in.pop(ctx.stop);
+      if (!item.has_value()) {
+        break;
+      }
 
-    std::transform(
-        value.begin(),
-        value.end(),
-        value.begin(),
-        [](unsigned char c) { return std::toupper(c); });
+      std::transform(
+          item.value().begin(),
+          item.value().end(),
+          item.value().begin(),
+          [](unsigned char c) { return std::toupper(c); });
 
-    emit(std::move(record));
+
+      if (!out.push(std::move(*item), ctx.stop)) {
+        break;
+      }
+    }
   }
 };
 
-extern "C" Stage* create_stage(const StageContext& ctx) {
-  return new UppercaseTransform(ctx);
-}
 
-extern "C" void destroy_stage(Stage* stage) {
-  delete stage;
+extern "C" {
+
+  IStage* flowpipe_create_stage() {
+    return new UppercaseTransform();
+  }
+
+  void flowpipe_destroy_stage(IStage* stage) {
+    delete stage;
+  }
+
 }

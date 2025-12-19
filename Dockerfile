@@ -1,21 +1,25 @@
-# =====================================================
-# Build example stage plugin (SDK-based)
-# =====================================================
+# ============================================================
+# Build stage plugin
+# ============================================================
+ARG FLOW_PIPE_TAG=main-ubuntu24.04
 
-FROM ghcr.io/hurdad/flow-pipe-dev:main-ubuntu24.04 AS build
-
-# Build deps only (SDK already installed)
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    cmake \
-    ninja-build \
-    clang \
- && rm -rf /var/lib/apt/lists/*
+FROM ghcr.io/hurdad/flow-pipe-dev:${FLOW_PIPE_TAG} AS build
 
 WORKDIR /build
 COPY . .
 
 RUN cmake -S . -B build -G Ninja \
-      -DCMAKE_BUILD_TYPE=Release \
-      -DFLOW_PIPE_ROOT=/opt/flow-pipe \
- && cmake --build build
+ && cmake --build build \
+ && cmake --install build
+
+
+# ============================================================
+# Runtime image with plugin
+# ============================================================
+FROM ghcr.io/hurdad/flow-pipe-runtime:${FLOW_PIPE_TAG}
+
+COPY --from=build \
+  /opt/flow-pipe/plugins/*.so \
+  /opt/flow-pipe/plugins/
+
+ENV FLOW_PIPE_PLUGIN_PATH=/opt/flow-pipe/plugins
