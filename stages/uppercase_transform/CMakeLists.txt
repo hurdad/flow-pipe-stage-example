@@ -9,7 +9,38 @@ project(stage_uppercase_transform LANGUAGES CXX)
 # (as done by your Docker images)
 list(APPEND CMAKE_PREFIX_PATH "/opt/flow-pipe")
 
+# ------------------------------------------------------------
+# Dependencies
+# ------------------------------------------------------------
 find_package(flowpipe REQUIRED)
+find_package(Protobuf REQUIRED)
+
+# ------------------------------------------------------------
+# Proto
+# ------------------------------------------------------------
+set(PROTO_FILES
+        uppercase_transform.proto
+)
+
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILES})
+
+add_library(stage_uppercase_proto STATIC
+        ${PROTO_SRCS}
+        ${PROTO_HDRS}
+)
+
+target_link_libraries(stage_uppercase_proto
+        PUBLIC protobuf::libprotobuf
+)
+
+target_include_directories(stage_uppercase_proto
+        PUBLIC
+        ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+target_compile_features(stage_uppercase_proto
+        PUBLIC cxx_std_20
+)
 
 # ------------------------------------------------------------
 # Stage plugin
@@ -30,6 +61,7 @@ target_include_directories(stage_uppercase_transform
 target_link_libraries(stage_uppercase_transform
         PRIVATE
         flowpipe::flowpipe_runtime
+        stage_uppercase_proto
 )
 
 # ------------------------------------------------------------
