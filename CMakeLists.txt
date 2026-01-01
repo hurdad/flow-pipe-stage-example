@@ -5,5 +5,10 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# ------------------------------------------------------------
+# Dependencies
+# ------------------------------------------------------------
+find_package(Protobuf REQUIRED)
+
 # Build all custom stages
 add_subdirectory(stages/uppercase_transform)

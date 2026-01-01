@@ -1,25 +1,27 @@
-name: uppercase_example
-
 queues:
-  - name: q1
-    capacity: 128
+  # source → uppercase
+  - name: q_in
+    type: QUEUE_TYPE_MPMC
+    capacity: 256
 
-  - name: q2
-    capacity: 128
+  # uppercase → sink
+  - name: q_out
+    type: QUEUE_TYPE_MPSC
+    capacity: 256
 
 stages:
   - name: source
     type: noop_source
     threads: 1
-    output_queue: q1
+    output_queue: q_in
 
-  - name: upper
+  - name: uppercase
     type: uppercase_transform
     threads: 1
-    input_queue: q1
-    output_queue: q2
+    input_queue: q_in
+    output_queue: q_out
 
   - name: sink
     type: stdout_sink
     threads: 1
-    input_queue: q2
+    input_queue: q_out
