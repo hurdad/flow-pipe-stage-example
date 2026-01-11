@@ -8,7 +8,7 @@ It demonstrates how to:
 - install it so the **flow-pipe runtime** can load it dynamically
 - reference the stage from a **Flow YAML spec**
 
-There is **no runtime or controller code** in this repository — only reusable **stage plugins**.
+There is **no runtime or controller code** in this repository — only reusable **stage plugins** and a sample flow.
 
 ---
 
@@ -32,11 +32,13 @@ Stages are compiled into **shared libraries** and loaded by the runtime at start
 flow_pipe_stage_example/
 ├── CMakeLists.txt
 ├── Dockerfile
-├── include/
-│   └── flow_pipe_stage_example/
-│       └── noop_stage.h
-├── src/
-│   └── noop_stage.cc
+├── flows/
+│   └── my_flow.yaml
+├── stages/
+│   └── uppercase_transform/
+│       ├── CMakeLists.txt
+│       ├── uppercase_transform.cc
+│       └── uppercase_transform.proto
 └── README.md
 ```
 
@@ -48,16 +50,23 @@ This repo provides a simple example stage:
 
 | Stage type | Plugin library |
 |----------|----------------|
-| `noop_stage` | `libstage_noop_stage.so` |
+| `uppercase_transform` | `libstage_uppercase_transform.so` |
 
-The stage does no processing — it simply passes data through — making it useful for learning and testing.
+The stage converts ASCII payloads to uppercase and supports a `verbose` boolean config defined in `uppercase_transform.proto`.
+
+---
+
+## Example Flow
+
+`flows/my_flow.yaml` wires a noop source, the uppercase transform, and a stdout sink to show the plugin in action.
 
 ---
 
 ## Build Requirements
 
 - C++20 compatible compiler
-- CMake ≥ 3.22
+- CMake ≥ 3.20
+- Protobuf development libraries
 - Docker (for container builds)
 
 ---
@@ -76,6 +85,7 @@ The resulting image includes:
   /opt/flow-pipe/plugins
   ```
 - the flow-pipe runtime binary
+- `FLOW_PIPE_PLUGIN_PATH=/opt/flow-pipe/plugins`
 
 Flow definitions are **not** baked into the image and are supplied at runtime.
 
@@ -137,7 +147,7 @@ Expected plugin path inside the container:
 
 ## Creating Your Own Stage
 
-1. Create a new `.h` / `.cc` pair
+1. Create a new `.proto` and `.cc` pair
 2. Implement the stage interface
 3. Export the registration symbol
 4. Build a shared library named:
@@ -169,4 +179,3 @@ This repository is intended for:
 ## License
 
 Apache 2.0
-
