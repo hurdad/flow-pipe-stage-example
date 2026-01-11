@@ -93,14 +93,14 @@ public:
     // ----------------------------------------------------------
     // Allocate new payload
     // ----------------------------------------------------------
-    void* raw = std::malloc(size);
-    if (!raw) {
+    auto buffer = AllocatePayloadBuffer(size);
+    if (!buffer) {
       FP_LOG_ERROR("uppercase_transform failed to allocate payload");
       return;
     }
 
-    const uint8_t* src = input.data;
-    uint8_t* dst = static_cast<uint8_t*>(raw);
+    const uint8_t* src = input.data();
+    uint8_t* dst = static_cast<uint8_t*>(buffer.get());
 
     // ----------------------------------------------------------
     // Uppercase transform (ASCII)
@@ -110,13 +110,13 @@ public:
           std::toupper(static_cast<unsigned char>(src[i])));
     }
 
-    // ----------------------------------------------------------
-    // Free input payload (ownership transfer)
-    // ----------------------------------------------------------
-    std::free(const_cast<uint8_t*>(input.data));
+    // log if verbose
+    if (config_.verbose()) {
+      std::cout << dst << std::endl;
+    }
 
-    output.data = static_cast<const uint8_t*>(dst);
-    output.size = size;
+    // build output
+    output = Payload(std::move(buffer), size);
   }
 
 private:

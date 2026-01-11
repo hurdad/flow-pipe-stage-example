@@ -1,12 +1,8 @@
 queues:
-  # source → uppercase
   - name: q_in
-    type: QUEUE_TYPE_MPMC
     capacity: 256
 
-  # uppercase → sink
   - name: q_out
-    type: QUEUE_TYPE_MPSC
     capacity: 256
 
 stages:
@@ -24,6 +20,8 @@ stages:
     threads: 1
     input_queue: q_in
     output_queue: q_out
+    config:
+      verbose: false
 
   - name: sink
     type: stdout_sink
