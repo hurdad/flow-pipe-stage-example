@@ -40,7 +40,7 @@ public:
   // ------------------------------------------------------------
   // ConfigurableStage
   // ------------------------------------------------------------
-  bool Configure(const google::protobuf::Struct& config) override {
+  bool configure(const google::protobuf::Struct& config) override {
     UppercaseTransformConfig cfg;
     std::string error;
 
