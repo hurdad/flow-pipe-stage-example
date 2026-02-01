@@ -2,11 +2,11 @@
 #include "flowpipe/configurable_stage.h"
 #include "flowpipe/observability/logging.h"
 #include "flowpipe/plugin.h"
+#include "flowpipe/protobuf_config.h"
 
 #include "uppercase_transform.pb.h"
 
 #include <google/protobuf/struct.pb.h>
-#include <google/protobuf/util/json_util.h>
 
 #include <cstdlib>
 #include <cstring>
@@ -41,21 +41,12 @@ public:
   // ConfigurableStage
   // ------------------------------------------------------------
   bool Configure(const google::protobuf::Struct& config) override {
-    std::string json;
-    auto status =
-        google::protobuf::util::MessageToJsonString(config, &json);
-
-    if (!status.ok()) {
-      FP_LOG_ERROR("uppercase_transform failed to serialize config");
-      return false;
-    }
-
     UppercaseTransformConfig cfg;
-    status =
-        google::protobuf::util::JsonStringToMessage(json, &cfg);
+    std::string error;
 
-    if (!status.ok()) {
-      FP_LOG_ERROR("uppercase_transform invalid config");
+    if (!ProtobufConfigParser<UppercaseTransformConfig>::Parse(config, &cfg,
+                                                                &error)) {
+      FP_LOG_ERROR("uppercase_transform invalid config: " + error);
       return false;
     }
 
