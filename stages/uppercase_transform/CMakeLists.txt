@@ -115,6 +115,7 @@ target_include_directories(stage_uppercase_transform_tests
 target_link_libraries(stage_uppercase_transform_tests
         PRIVATE
         stage_uppercase_transform
+        stage_uppercase_proto
 )
 
 target_compile_features(stage_uppercase_transform_tests

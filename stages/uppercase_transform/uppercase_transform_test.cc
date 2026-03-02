@@ -51,7 +51,7 @@ int main() {
   AssertTrue(configurable != nullptr, "Stage is not configurable");
 
   google::protobuf::Struct config;
-  (*config.mutable_fields())["verbose"].mutable_bool_value()->set_value(false);
+  (*config.mutable_fields())["verbose"].set_bool_value(false);
   AssertTrue(configurable->configure(config), "Stage configure() failed");
 
   auto* transform = dynamic_cast<flowpipe::ITransformStage*>(stage);
