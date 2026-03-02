@@ -8,10 +8,9 @@
 
 #include <google/protobuf/struct.pb.h>
 
+#include <cctype>
 #include <cstdlib>
 #include <cstring>
-
-#include "uppercase_transform_util.h"
 
 using namespace flowpipe;
 
@@ -94,10 +93,10 @@ public:
     const uint8_t* src = input.data();
     uint8_t* dst = static_cast<uint8_t*>(buffer.get());
 
-    // ----------------------------------------------------------
-    // Uppercase transform (ASCII)
-    // ----------------------------------------------------------
-    flowpipe::stages::uppercase::UppercaseAscii(src, dst, size);
+    for (size_t i = 0; i < size; ++i) {
+      dst[i] = static_cast<uint8_t>(
+          std::toupper(static_cast<unsigned char>(src[i])));
+    }
 
     // log if verbose
     if (config_.verbose()) {
