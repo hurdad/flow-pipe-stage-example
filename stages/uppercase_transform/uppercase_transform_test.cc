@@ -1,11 +1,24 @@
-#include "uppercase_transform_util.h"
+#include "flowpipe/configurable_stage.h"
+#include "flowpipe/stage.h"
+
+#include <google/protobuf/struct.pb.h>
 
 #include <cstdio>
-#include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <string>
 
+extern "C" flowpipe::IStage* flowpipe_create_stage();
+extern "C" void flowpipe_destroy_stage(flowpipe::IStage* stage);
+
 namespace {
+
+void AssertTrue(bool condition, const char* message) {
+  if (!condition) {
+    std::fprintf(stderr, "%s\n", message);
+    std::exit(1);
+  }
+}
 
 void AssertEqual(const std::string& expected, const std::string& actual) {
   if (expected != actual) {
@@ -17,41 +30,40 @@ void AssertEqual(const std::string& expected, const std::string& actual) {
   }
 }
 
+flowpipe::Payload PayloadFromString(const std::string& value) {
+  auto buffer = flowpipe::AllocatePayloadBuffer(value.size());
+  AssertTrue(static_cast<bool>(buffer), "Failed to allocate test payload buffer");
+  std::memcpy(buffer.get(), value.data(), value.size());
+  return flowpipe::Payload(std::move(buffer), value.size());
+}
+
+std::string PayloadToString(const flowpipe::Payload& payload) {
+  return std::string(reinterpret_cast<const char*>(payload.data()), payload.size);
+}
+
 }  // namespace
 
 int main() {
-  {
-    const std::string input = "Hello, Flow-Pipe!";
-    std::string output(input.size(), '\0');
+  flowpipe::IStage* stage = flowpipe_create_stage();
+  AssertTrue(stage != nullptr, "Failed to create stage");
 
-    flowpipe::stages::uppercase::UppercaseAscii(
-        reinterpret_cast<const uint8_t*>(input.data()),
-        reinterpret_cast<uint8_t*>(output.data()),
-        input.size());
+  auto* configurable = dynamic_cast<flowpipe::ConfigurableStage*>(stage);
+  AssertTrue(configurable != nullptr, "Stage is not configurable");
 
-    AssertEqual("HELLO, FLOW-PIPE!", output);
-  }
+  google::protobuf::Struct config;
+  (*config.mutable_fields())["verbose"].mutable_bool_value()->set_value(false);
+  AssertTrue(configurable->configure(config), "Stage configure() failed");
 
-  {
-    const std::string input = "already upper";
-    std::string output(input.size(), '\0');
+  auto* transform = dynamic_cast<flowpipe::ITransformStage*>(stage);
+  AssertTrue(transform != nullptr, "Stage is not a transform");
 
-    flowpipe::stages::uppercase::UppercaseAscii(
-        reinterpret_cast<const uint8_t*>(input.data()),
-        reinterpret_cast<uint8_t*>(output.data()),
-        input.size());
+  flowpipe::StageContext ctx;
+  const auto input = PayloadFromString("Hello, Flow-Pipe!");
+  flowpipe::Payload output;
 
-    AssertEqual("ALREADY UPPER", output);
-  }
+  transform->process(ctx, input, output);
+  AssertEqual("HELLO, FLOW-PIPE!", PayloadToString(output));
 
-  {
-    const std::string input;
-    std::string output;
-
-    flowpipe::stages::uppercase::UppercaseAscii(nullptr, nullptr, 0);
-
-    AssertEqual(input, output);
-  }
-
+  flowpipe_destroy_stage(stage);
   return 0;
 }

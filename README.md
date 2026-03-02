@@ -40,8 +40,6 @@ flow_pipe_stage_example/
 │       ├── uppercase_transform.cc
 │       ├── uppercase_transform.proto
 │       ├── uppercase_transform_test.cc
-│       ├── uppercase_transform_util.cc
-│       └── uppercase_transform_util.h
 └── README.md
 ```
 

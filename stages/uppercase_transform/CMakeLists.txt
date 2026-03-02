@@ -43,22 +43,6 @@ target_compile_features(stage_uppercase_proto
 )
 
 # ------------------------------------------------------------
-# Shared utility (unit-testable)
-# ------------------------------------------------------------
-add_library(stage_uppercase_util STATIC
-        uppercase_transform_util.cc
-)
-
-target_include_directories(stage_uppercase_util
-        PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
-target_compile_features(stage_uppercase_util
-        PUBLIC cxx_std_20
-)
-
-# ------------------------------------------------------------
 # Stage plugin
 # ------------------------------------------------------------
 add_library(stage_uppercase_transform SHARED
@@ -78,7 +62,6 @@ target_link_libraries(stage_uppercase_transform
         PRIVATE
         flowpipe::flowpipe_runtime
         stage_uppercase_proto
-        stage_uppercase_util
 )
 
 # ------------------------------------------------------------
@@ -124,9 +107,14 @@ add_executable(stage_uppercase_transform_tests
         uppercase_transform_test.cc
 )
 
+target_include_directories(stage_uppercase_transform_tests
+        PRIVATE
+        /opt/flow-pipe/include
+)
+
 target_link_libraries(stage_uppercase_transform_tests
         PRIVATE
-        stage_uppercase_util
+        stage_uppercase_transform
 )
 
 target_compile_features(stage_uppercase_transform_tests
